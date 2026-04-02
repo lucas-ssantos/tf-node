@@ -6,52 +6,34 @@ import  * as tf from '@tensorflow/tfjs-node';
 const xs = tf.tensor([1, 2, 3, 4]);
 const ys = tf.tensor([1, 3, 5, 7]);
 
-//Modelo sequêncial, rede neural camada por camada
-const model = tf.sequential();
+async function train(epochs) {
+  //Modelo sequêncial, rede neural camada por camada
+  const model = tf.sequential();
+  model.add(tf.layers.dense({ units: 1, inputShape: [1] }));
 
-//Dense é camada totalmente conectada
-//Units é 1 neurônio
-//inputShape é a entrada de apenas um número
-model.add(tf.layers.dense({ units: 1, inputShape: [1] }));
+  model.compile({
+    optimizer: 'sgd',
+    loss: 'meanSquaredError'
+  });
 
-//Optimizer é o método de ajuste dos pesos
-//Loss mede o erro de previsão
-model.compile({
-  optimizer: 'sgd',
-  loss: 'meanSquaredError'
-});
 
-async function train() {
   //Roda treinos com os dados XS e YS por 200 épocas
-  await model.fit(xs, ys, { epochs: 200 });
-
-  //Pega o modelo e treina roda com o valor 5
+  await model.fit(xs, ys, { epochs });
   const output = model.predict(tf.tensor([5]));
-  return output.data(); 
-  //Output é um objeto Tensor
-  //O dado resultado que queremos está onde Judas perdeu as botas...
-  //então precisa de algumas funções do objeto para pegar o resultado em si
-
-  //EXEMPLO DE SAÍDAS com um tensor 2D com valor 9
-  /*
-   const t = tf.tensor([[9]]); //Matriz 2D 1x1 
-   conslo.log(t); 		//Tensor { shape: [1,1], dtype: 'float32' }
-   t.print(); 			//[[9]] saí a matrix com o resultado
-   console.log(t.dataSync()); 	//Float32Array [9] *
-   console.log(t.data[0])	//9
-
-   				*Bom para pegar em logs
-  */
-
-  //Deve ser perto de 9, pois 2 * 5 - 1 = 9
-  //Não vai dar exatos 9, pq IA é a IA... e.e
+  return output.dataSync()[0]; 
 }
 
 async function main()
 {
-  const data = await train();
-  const result = data[0];
-  console.log(result);
+  var results = [];
+  const epochList = [5, 50, 100, 200, 500];
+
+  for(const e of epochList){
+    const result = await train(e);
+    results.push(e + ' => ' + result);
+  }
+
+  console.log(results);
 }
 
 main();
